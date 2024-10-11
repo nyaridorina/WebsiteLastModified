@@ -6,9 +6,20 @@
 <body>
     <h1>Check when a website was last updated</h1>
     <form method="post">
-        Web Address: <input type="text" name="webaddress">
+        Web Address: <input type="text" name="webaddress" placeholder="https://example.com">
         <input type="submit" value="Check">
     </form>
-    <p>{{ result }}</p>
+    {% if result %}
+    <div>
+        <h3>Result:</h3>
+        <p>{{ result }}</p>
+    </div>
+    {% endif %}
+    {% if additional_info %}
+    <div>
+        <h3>Additional Information:</h3>
+        <p>{{ additional_info }}</p>
+    </div>
+    {% endif %}
 </body>
 </html>
