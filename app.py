@@ -1,8 +1,6 @@
-from flask import Flask, request, render_template_string
-import requests
-from bs4 import BeautifulSoup
+import logging
 
-app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -43,10 +41,13 @@ def index():
             result = "Invalid URL. Please make sure you include 'http://' or 'https://'."
         except requests.exceptions.ConnectionError:
             result = "Failed to connect to the website. Please check the URL or your network connection."
+            logging.error("ConnectionError for URL: %s", url)
         except requests.exceptions.Timeout:
             result = "The request timed out. The website might be taking too long to respond."
+            logging.error("Timeout occurred for URL: %s", url)
         except requests.RequestException as e:
             result = f"An error occurred: {str(e)}"
+            logging.error("RequestException for URL: %s - %s", url, e)
 
     html = '''
     <!doctype html>
@@ -77,6 +78,3 @@ def index():
     '''
     
     return render_template_string(html, result=result, additional_info=additional_info)
-
-if __name__ == '__main__':
-    app.run(debug=True)
