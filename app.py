@@ -1,9 +1,10 @@
-import tkinter as tk
-from tkinter import messagebox
+from flask import Flask, render_template, request
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 import re
+
+app = Flask(__name__)
 
 def get_last_modified(url):
     """
@@ -96,69 +97,35 @@ def scrape_author(url):
         print(f"Error scraping author: {e}")
         return None
 
-def fetch_update_info():
-    url = url_entry.get().strip()
-    if not url:
-        messagebox.showwarning("Input Error", "Please enter a URL.")
-        return
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    update_info = ""
+    if request.method == 'POST':
+        url = request.form.get('url', '').strip()
+        if not url:
+            update_info = "Please enter a URL."
+            return render_template('index.html', update_info=update_info)
 
-    # Ensure the URL starts with http:// or https://
-    if not re.match(r'^https?:\/\/', url):
-        url = 'http://' + url
+        # Ensure the URL starts with http:// or https://
+        if not re.match(r'^https?:\/\/', url):
+            url = 'http://' + url
 
-    result_label.config(text="Fetching update information...")
-    root.update_idletasks()
-
-    last_modified = get_last_modified(url)
-    if last_modified:
-        update_info = f"Last Modified: {last_modified}"
-    else:
-        scraped_date = scrape_last_updated(url)
-        if scraped_date:
-            update_info = f"Last Updated (scraped): {scraped_date}"
+        last_modified = get_last_modified(url)
+        if last_modified:
+            update_info = f"**Last Modified:** {last_modified}"
         else:
-            update_info = "Last update information not found."
+            scraped_date = scrape_last_updated(url)
+            if scraped_date:
+                update_info = f"**Last Updated (scraped):** {scraped_date}"
+            else:
+                update_info = "Last update information not found."
 
-    # Attempt to find the author if available
-    author = scrape_author(url)
-    if author:
-        update_info += f"\nUpdated By: {author}"
+        # Attempt to find the author if available
+        author = scrape_author(url)
+        if author:
+            update_info += f"<br>**Updated By:** {author}"
 
-    result_label.config(text=update_info)
+    return render_template('index.html', update_info=update_info)
 
-# Setting up the GUI
-root = tk.Tk()
-root.title("Website Update Checker")
-root.geometry("600x350")
-root.resizable(False, False)
-
-# Styling
-root.configure(bg="#f0f0f0")
-
-# Title Label
-title_label = tk.Label(root, text="Website Update Checker", font=("Helvetica", 16, "bold"), bg="#f0f0f0")
-title_label.pack(pady=10)
-
-# URL Entry Frame
-entry_frame = tk.Frame(root, bg="#f0f0f0")
-entry_frame.pack(pady=10)
-
-url_label = tk.Label(entry_frame, text="Enter Website URL:", font=("Arial", 12), bg="#f0f0f0")
-url_label.pack(side="left", padx=5)
-
-url_entry = tk.Entry(entry_frame, width=50, font=("Arial", 12))
-url_entry.pack(side="left", padx=5)
-
-# Fetch Button
-fetch_button = tk.Button(root, text="Check Update Info", command=fetch_update_info, font=("Arial", 12), bg="#4CAF50", fg="white", padx=10, pady=5)
-fetch_button.pack(pady=10)
-
-# Result Display
-result_frame = tk.Frame(root, bg="#f0f0f0")
-result_frame.pack(pady=20)
-
-result_label = tk.Label(result_frame, text="", font=("Arial", 12), justify="left", bg="#f0f0f0")
-result_label.pack()
-
-# Run the application
-root.mainloop()
+if __name__ == '__main__':
+    app.run(debug=True)
