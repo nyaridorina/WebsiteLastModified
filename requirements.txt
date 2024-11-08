@@ -1,6 +1,4 @@
-import tkinter as tk
-from tkinter import messagebox
-import requests
-from bs4 import BeautifulSoup
-from datetime import datetime
-import re
+Flask==2.3.2
+requests==2.31.0
+beautifulsoup4==4.12.2
+gunicorn==20.1.0
